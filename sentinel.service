@@ -1,0 +1,12 @@
+[Unit]
+Description=Linux Security Sentinel Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/yazan_taha/monitor.py
+Restart=always
+RestartSec=10
+User=root
+
+[Install]
+WantedBy=multi-user.target
