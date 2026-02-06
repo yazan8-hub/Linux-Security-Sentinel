@@ -3,6 +3,7 @@ Description=Linux Security Sentinel Service
 After=network.target
 
 [Service]
+EnvironmentFile=/home/yazan_taha/Desktop/Sentinel-Project/.env
 ExecStart=/usr/bin/python3 /home/yazan_taha/monitor.py
 Restart=always
 RestartSec=10

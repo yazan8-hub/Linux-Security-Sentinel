@@ -1,12 +1,12 @@
-#!!THIS CODE WAS WRITTEN BY {ENG.YAZAN_TAHA}&{ENG.LAILA_SAIFAN}&{ENG.ASHED_AL3KESH}    
 import time
 import requests
 import os
 
 # Configuration
-TOKEN = "TELEGRAM_BOT_TOKEN"
-CHAT_ID = "TELEGRAM_CHAT_ID"
-LOG_FILE = "/var/log/secure"
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+SSH_LOG = "/var/log/secure"
+USB_LOG = "/var/log/messages"
 
 def send_telegram_msg(message):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -16,36 +16,32 @@ def send_telegram_msg(message):
     except Exception as e:
         print(f"Error sending message: {e}")
 
-def monitor_log():
-    # Open the log file and move to the end
-    if not os.path.exists(LOG_FILE):
-        print(f"Error: {LOG_FILE} not found.")
-        return
-
-    with open(LOG_FILE, "r") as f:
-        f.seek(0, os.SEEK_END)
-        print("Sentinel is watching for unauthorized access...")
-        
-        while True:
-            line = f.readline()
-            if not line:
-                time.sleep(1)
-                continue
+def monitor_logs():
+    # Open both log files
+    f_ssh = open(SSH_LOG, "r")
+    f_usb = open(USB_LOG, "r")
+    
+    # Move to the end of files
+    f_ssh.seek(0, os.SEEK_END)
+    f_usb.seek(0, os.SEEK_END)
+    
+    print("Sentinel 2.0 is watching SSH & USB events...")
+    
+    while True:
+        # Check SSH Logs
+        ssh_line = f_ssh.readline()
+        if ssh_line and "Failed password" in ssh_line:
+            msg = f"🚨 SSH Alert: Failed Login Attempt!\nDetails: {ssh_line.strip()}"
+            send_telegram_msg(msg)
             
-            # Detect failed SSH login attempts
-            if "Failed password" in line:
-                try:
-                    # Extract IP address from the log line
-                    ip_start = line.find("from") + 5
-                    ip_end = line.find("port")
-                    ip_address = line[ip_start:ip_end].strip()
-                    
-                    hostname = os.uname()[1]
-                    msg = f"🚨 Alert: Failed Login Attempt!\nIP: {ip_address}\nHost: {hostname}\nLog: {line.strip()}"
-                    send_telegram_msg(msg)
-                except Exception as e:
-                    print(f"Parsing error: {e}")
+        # Check USB Logs
+        usb_line = f_usb.readline()
+        if usb_line and "New USB device found" in usb_line:
+            msg = f"🔌 USB Alert: New Device Detected!\nDetails: {usb_line.strip()}"
+            send_telegram_msg(msg)
+            
+        time.sleep(0.5)
 
 if __name__ == "__main__":
-    send_telegram_msg("✅ Sentinel Security Service Started Successfully!")
-    monitor_log()
+    send_telegram_msg("✅ Sentinel 2.0 Started: Monitoring SSH & USB")
+    monitor_logs()
