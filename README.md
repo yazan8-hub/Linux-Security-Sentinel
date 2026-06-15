@@ -52,4 +52,4 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now sentinel.service
 sudo systemctl enable --now sentinel-interactive.service
 
-**Created by: ENG.YAZAN_TAHA & ENG.LAILA_SAIFAN & ENG.RASHED_AL3KESH **
+**Created by: ENG.YAZAN_TAHA **
